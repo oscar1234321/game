@@ -5,9 +5,9 @@ import pygame.locals
 WIDTH = HEIGHT = 1000
 
 class boxer:
-    def __init__(self, x, controls=None, color=(60, 120, 255), handle):
+    def __init__(self, x, handle, controls=None, color=(60, 120, 255)):
         self.x = x
-        self.y = 0
+        self.y = 500
         self.vx = 0
         self.vy = 0
         self.on_ground = True
@@ -38,20 +38,21 @@ class boxer:
         }
     
     def update(self, screen: pygame.surface):
-        self.x += self.vx
-        self.y += self.vy
-        pygame.draw.rect(screen, "#E03B3B",(self.x,self.y,100,100))
+        if (self.x + self.vx)>0 and (self.x + self.vx+100<=1010):
+            self.x += self.vx
+        pygame.draw.rect(screen, "#E03B3B",(self.x,self.y,100,200))
 
 def main():
     fps = 60
     fps_clock = pygame.time.Clock()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    box1 = boxer(1)
+    box1 = boxer(1,1)
     speed = 10
 
     while True:
         screen.fill("#000000")
+        pygame.draw.rect(screen, "#7B2E16",(0,700,1000,200))
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
                 pygame.quit()
