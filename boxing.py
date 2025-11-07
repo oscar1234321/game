@@ -38,8 +38,6 @@ class boxer:
             "dodge": pygame.K_s,
         }
     
-    def start dodge(self)
-    
     def update(self, screen: pygame.surface):
         if (self.x + self.vx)>0 and (self.x + self.vx+100<=1010):
             self.x += self.vx
