@@ -5,7 +5,7 @@ import pygame.locals
 WIDTH = HEIGHT = 1000
 
 class boxer:
-    def __init__(self, x, controls=None, color=(60, 120, 255), facing=1):
+    def __init__(self, x, controls=None, color=(60, 120, 255), handle):
         self.x = x
         self.y = 0
         self.vx = 0
@@ -13,7 +13,7 @@ class boxer:
         self.on_ground = True
 
         self.color = color
-        self.facing = facing 
+        self.facing = handle 
 
         self.max_health = 100
         self.health = 100
