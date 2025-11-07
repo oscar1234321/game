@@ -22,6 +22,7 @@ class boxer:
         self.stamina = 100
 
         self.dodging = False
+        self.dodge_timer = 0
 
         self.hitstun = 0
 
@@ -36,6 +37,8 @@ class boxer:
             "punch": pygame.K_w,
             "dodge": pygame.K_s,
         }
+    
+    def start dodge(self)
     
     def update(self, screen: pygame.surface):
         self.x += self.vx
