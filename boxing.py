@@ -94,12 +94,12 @@ def main():
                     person.vx = 0
                 if held[pygame.K_w]:
                     person.punch = 1
-                    person.stamina -= 0.3
+                    person.stamina -= 1
                 else:
                     person.punch = 0
                 if held[pygame.K_s]:
                     person.dodging = True
-                    person.stamina -= 2
+                    person.stamina -= 1
                 else:
                     person.dodging = False
             if not person.punch and not person.dodging:
