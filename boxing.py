@@ -41,7 +41,7 @@ class boxer:
         pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
         pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
         pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
-        if self.vx==0 or self.punch==0:
+        if self.vx==0 and self.punch==0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
         elif self.vx>0 and self.punch==1:
             pygame.draw.rect(screen, "#E03BA6", (self.x+50, self.y+50, 100,50))
