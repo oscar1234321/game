@@ -17,6 +17,7 @@ class boxer:
 
         self.max_health = 100
         self.health = 100
+        self.lives = 3
 
         self.max_stamina = 100
         self.stamina = 100
@@ -28,8 +29,8 @@ class boxer:
         self.hitstun = 0
 
         self.attack_windup = 0
-        self.attack_type = None  
-
+        self.attack_type = None
+        
     def update(self, screen: pygame.surface):
         if self.vx > 7:
             self.vx = 6
@@ -51,6 +52,18 @@ class boxer:
         elif self.punch == 1:
             pygame.draw.rect(screen, "#E03BA6", (self.x + 50 - 100, self.y + 50, 100, 50))
 
+def draw_lives(screen, box1, box2):
+    font = pygame.font.SysFont(None, 40)
+    text1 = font.render("Boxer 1:", True, (255, 255, 255))
+    screen.blit(text1, (20, 20))
+    for i in range(box1.lives):
+        pygame.draw.rect(screen, "#FF0000", (140 + i * 40, 20, 30, 30))
+    
+    text2 = font.render("Boxer 2:", True, (255, 255, 255))
+    screen.blit(text2, (WIDTH - 250, 20))
+    for i in range(box2.lives):
+        pygame.draw.rect(screen, "#FF0000", (WIDTH - 130 + i * 40, 20, 30, 30))
+
 def main():
     fps = 120
     fps_clock = pygame.time.Clock()
@@ -63,6 +76,7 @@ def main():
     while True:
         screen.fill("#000000")
         pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
+        draw_lives(screen, box1, box2)
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
                 pygame.quit()
