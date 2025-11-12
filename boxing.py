@@ -5,11 +5,10 @@ import pygame.locals
 WIDTH = HEIGHT = 1000
 
 class boxer:
-    def __init__(self, x, handle, color):
+    def __init__(self, x, handle, facing, color):
         self.x = x
         self.y = 500
         self.vx = 4
-        self.handle=handle
         self.acc=0.1
         self.punch=0
 
@@ -21,14 +20,17 @@ class boxer:
         self.max_stamina = 100
         self.stamina = 100
 
+        self.handle=handle
+        self.facing=facing
+
         self.dodging = False
 
+        self.hurtbox = None
+        self.hitbox = None
         self.hitstun = 0
 
         self.attack_windup = 0
         self.attack_type = None  
-
-
     
     def update(self, screen: pygame.surface):
         if self.vx>7:
@@ -37,24 +39,48 @@ class boxer:
             self.x += self.vx
         minus=0
         if self.dodging:
-            minus = 50
+            minus = 5
+
         pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
         pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
         pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
-        if self.vx==0 or self.punch==0:
+
+        if self.punch == 0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
-        elif self.vx>0 and self.punch==1:
-            pygame.draw.rect(screen, "#E03BA6", (self.x+50, self.y+50, 100,50))
-        elif self.punch==1:
-            pygame.draw.rect(screen, "#E03BA6", (self.x+50-100, self.y+50, 100,50))
+        elif self.facing == 1:
+            self.hitbox = (self.x + 50, self.y +50, 100,50)
+            pygame.draw.rect(screen, "#E03BA6", self.hitbox)
+        elif self.facing == -1:
+            self.hitbox = (self.x - 50, self.y +50, 100,50)
+            pygame.draw.rect(screen, "#E03BA6", self.hitbox)
+
+def collision(box1,box2):
+    if box1.hitbox and box2.hurtbox:
+        x1, y1, w1, h1 = box1.hitbox
+        x2, y2, w2, h2 = box2.hurtbox
+        
+        if (x1 < x2 + w2 and x1 + w1 > x2 and 
+            y1 < y2 + h2 and y1 + h1 > y2):
+            
+            if box1.attack_type == "light":
+                damage = 5
+            else:  
+                damage = 15
+            
+            box2.health = max(0, box2.health - damage)
+            box1.hitbox = None  
+            box1.attack_time = 0
+            box1.attack_type = None
+            return True
+    return False
 
 def main():
     fps = 120
     fps_clock = pygame.time.Clock()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    box1 = boxer(1,1,"#49E03B")
-    box2 = boxer(WIDTH-100,0,"#672EBC")
+    box1 = boxer(1,1,1,"#49E03B")
+    box2 = boxer(WIDTH-100,0,-1,"#672EBC")
     boxers=[]
     boxers.append(box1)
     boxers.append(box2)
@@ -74,8 +100,10 @@ def main():
             if person.handle==0:
                 if held[pygame.K_RIGHT]:
                     person.vx+=person.acc
+                    person.facing == 1
                 elif held[pygame.K_LEFT]:
                     person.vx-=person.acc
+                    person.facing==-1
                 else:
                     person.vx=0
                 if held[pygame.K_UP]:
@@ -89,8 +117,10 @@ def main():
             elif person.handle==1:
                 if held[pygame.K_d]:
                     person.vx+=person.acc
+                    person.facing = 1
                 elif held[pygame.K_a]:
                     person.vx-=person.acc
+                    person.facing = -1
                 else:
                     person.vx=0
                 if held[pygame.K_w]:
