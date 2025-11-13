@@ -46,15 +46,19 @@ class boxer:
         if self.dodging:
             minus = 50
 
+        self.hurtbox = (self.x, self.y + minus, 100, 200 - minus)
+
         pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
         pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
         pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
         pygame.draw.rect(screen, "#FFFFFF", (self.x - 25, self.y - 70, 150, 45))
         stamina_ratio = self.stamina / self.max_stamina
+
         pygame.draw.rect(screen, "#0000FF", (self.x - 20, self.y - 65, 140 * stamina_ratio, 15))
         health_ratio = self.health / self.max_health
         pygame.draw.rect(screen, "#FF0000", (self.x - 20, self.y - 45, 140 * health_ratio, 15))
         pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
+
         if self.punch == 0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
         elif self.facing == 1:
@@ -77,22 +81,18 @@ def draw_lives(screen, box1, box2):
         pygame.draw.rect(screen, "#FF0000", (WIDTH - 130 + i * 40, 20, 30, 30))
 
 def collision(box1,box2):
-    if box1.hitbox and box2.hurtbox:
+    if box1.hitbox and box2.hurtbox and not box2.dodging:
         x1, y1, w1, h1 = box1.hitbox
         x2, y2, w2, h2 = box2.hurtbox
         
         if (x1 < x2 + w2 and x1 + w1 > x2 and 
             y1 < y2 + h2 and y1 + h1 > y2):
             
-            if box1.attack_type == "light":
-                damage = 5
-            else:  
-                damage = 15
-            
+            damage = 5
             box2.health = max(0, box2.health - damage)
+
             box1.hitbox = None  
-            box1.attack_time = 0
-            box1.attack_type = None
+            box1.punch = 0
             return True
     return False
 
@@ -110,20 +110,22 @@ def main():
         screen.fill("#000000")
         pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
         draw_lives(screen, box1, box2)
+
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
                 pygame.quit()
                 sys.exit()
+
         held = pygame.key.get_pressed()
         for person in boxers:
             if person.stamina > 0:
                 if person.handle == 0:
                     if held[pygame.K_RIGHT]:
                         person.vx += person.acc
-                        person.facing == 1
+                        person.facing = 1
                     elif held[pygame.K_LEFT]:
                         person.vx -= person.acc
-                        person.facing == -1
+                        person.facing = -1
                     else:
                         person.vx = 0
                     if held[pygame.K_UP]:
@@ -141,10 +143,10 @@ def main():
                 elif person.handle == 1:
                     if held[pygame.K_d]:
                         person.vx += person.acc
-                        person.facing == 1
+                        person.facing = 1
                     elif held[pygame.K_a]:
                         person.vx -= person.acc
-                        person.facing == -1
+                        person.facing = -1
                     else:
                         person.vx = 0
                     if held[pygame.K_w]:
@@ -173,6 +175,10 @@ def main():
             if person.stamina < 0:
                 person.stamina = 0
             person.update(screen)
+        
+        collision(box1, box2)
+        collision(box2, box1)
+
         pygame.display.flip()
         fps_clock.tick(fps)
 
