@@ -34,21 +34,29 @@ class boxer:
 
         self.attack_type = None  # "light" or "heavy"
 
-
-        # controls mapping for human
         self.controls = controls
     
     def draw(self,screen):
         pygame.draw.rect(screen,self.color,(self.x,self.y,100,200))
-        
         self.hurtbox = (self.x-10, self.y-10, 120, 220)
-
         pygame.draw.rect(screen, (0,0,0), self.hurtbox, 1,2)
 
-    def punch(self):
-        if self.attack_time == 0 and self.attack_cooldown == 0:
-            self.attack_time = self.attack_duration
+        pygame.draw.rect(screen, (100, 100, 100), (self.x, self.y - 45, 100, 10))
+        health_width = int((self.health / self.max_health) * 100)
+        pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y - 45, health_width, 10))
 
+    def punch(self, punch_type):
+        if self.attack_time == 0 and self.attack_cooldown == 0:
+            self.attack_type = punch_type
+                
+            if punch_type == "light":
+                self.attack_duration = 25  # Faster
+                self.attack_cooldown_duration = 40  # Shorter cooldown
+            elif punch_type == "heavy":
+                self.attack_duration = 50  # Slower
+                self.attack_cooldown_duration = 60  # Lo
+
+            self.attack_time = self.attack_duration
             self.attack_cooldown = self.attack_cooldown_duration
     
     def update(self, screen: pygame.surface):
@@ -74,9 +82,30 @@ class boxer:
             
         else:
             self.hitbox = None
+            self.attack_type = None
 
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
+
+def collision(box1, box2):
+    if box1.hitbox and box2.hurtbox:
+        x1, y1, w1, h1 = box1.hitbox
+        x2, y2, w2, h2 = box2.hurtbox
+        
+        if (x1 < x2 + w2 and x1 + w1 > x2 and 
+            y1 < y2 + h2 and y1 + h1 > y2):
+            
+            if box1.attack_type == "light":
+                damage = 5
+            else:  
+                damage = 15
+            
+            box2.health = max(0, box2.health - damage)
+            box1.hitbox = None  
+            box1.attack_time = 0
+            box1.attack_type = None
+            return True
+    return False
 
 def main():
     fps = 60
@@ -87,14 +116,16 @@ def main():
     box1 = boxer(100,1,controls={
         "left1": pygame.K_a,
         "right1": pygame.K_d,
-        "punch1": pygame.K_w,
+        "L_punch1": pygame.K_w,
+        "H_punch1": pygame.K_e,
         "dodge1": pygame.K_s,
     })
 
     box2 = boxer(800,-1,controls = {
         "left2": pygame.K_LEFT,
         "right2": pygame.K_RIGHT,
-        "punch2": pygame.K_UP,
+        "L_punch2": pygame.K_UP,
+        "H_punch2": pygame.K_RSHIFT,
         "dodge2": pygame.K_DOWN,
     }, color = (0,255,255))
 
@@ -120,8 +151,10 @@ def main():
             else:
                 box1.vx=0
 
-        if held[box1.controls["punch1"]]:
-            box1.punch()
+        if held[box1.controls["L_punch1"]]:
+            box1.punch("light")
+        if held[box1.controls["H_punch1"]]:
+            box1.punch("heavy")
         
         if box2.attack_time == 0:
             if held[box2.controls["right2"]]:  
@@ -133,14 +166,19 @@ def main():
             else:
                 box2.vx = 0
 
-        if held[box2.controls["punch2"]]:  
-            box2.punch()
+        if held[box2.controls["L_punch2"]]:  
+            box2.punch("light")
+        if held[box2.controls["H_punch2"]]:
+            box2.punch("heavy")
 
         box1.update(screen)
         box1.draw(screen)
 
         box2.update(screen)
         box2.draw(screen)
+
+        collision(box1,box2)
+        collision(box2,box1)
 
         pygame.display.flip()
         fps_clock.tick(fps)
