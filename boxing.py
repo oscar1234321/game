@@ -84,14 +84,11 @@ class boxer:
         if self.dodging:
             minus = 50
 
-        self.hurtbox = (self.x, self.y + minus, 100, 200 - minus)
-
-        pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
-        pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
-        self.image=pygame.transform.scale(self.image, (100,200-minus))
+        self.hurtbox = (self.x, self.y + minus, 150, 200 - minus)
+        self.image=pygame.transform.scale(self.image, (150,200-minus))
         screen.blit(self.image, (self.x,self.y+minus))
-        # pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
-        pygame.draw.rect(screen, "#FFFFFF", (self.x - 25, self.y - 70, 150, 45))
+        
+        health_ratio = self.health / self.max_health
         stamina_ratio = self.stamina / self.max_stamina
 
         if self.handle == 1:
@@ -110,13 +107,12 @@ class boxer:
             health_width = 400 * health_ratio
             pygame.draw.rect(screen, "#FF0000", (980-health_width, 75, health_width, 25))
 
-        self.image=pygame.transform.scale(self.image, (100,200-minus))
+        self.image=pygame.transform.scale(self.image, (150,200-minus))
         screen.blit(self.image, (self.x,self.y+minus))
         # pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
-        pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
 
         if self.punch_pos == 0:
-            pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
+            pygame.draw.rect(screen, "#E03BA6", (self.x+50, self.y+50, 50,100))
         elif self.facing == 1:
             self.hitbox = (self.x + 50, self.y +50, 100,50)
             pygame.draw.rect(screen, "#E03BA6", self.hitbox)
