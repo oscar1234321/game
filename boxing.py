@@ -8,11 +8,13 @@ class boxer:
     def __init__(self, x, handle, facing, color):
         self.x = x
         self.y = 500
-        self.vx = 4
+        # self.vx = 4
+        self.vx=0
 
         self.handle = handle
-        self.acc = 0.1
-        self.punch = 0
+        # self.acc = 0.1
+        self.speed = 8
+        self.punch_pos = 0
 
         self.color = color
 
@@ -34,13 +36,47 @@ class boxer:
         self.hitbox = None
         self.hitstun = 0
 
-        self.attack_windup = 0
+        self.attack_time = 0
+        self.attack_duration = 30
+        self.attack_cooldown = 0
+        self.attack_cooldown_duration = 50
+
         self.attack_type = None
+
+        self.light_pressed = False
+        self.heavy_pressed = False
+
+        self.knockback_velocity = 0
+        self.knockback_duration = 0
+
+    def punch(self, punch_type):
+        if self.attack_time == 0 and self.attack_cooldown == 0:
+            self.attack_type = punch_type
+                
+            if punch_type == "light":
+                self.attack_duration = 25  # Faster
+                self.attack_cooldown_duration = 40  # Shorter cooldown
+            elif punch_type == "heavy":
+                self.attack_duration = 50  # Slower
+                self.attack_cooldown_duration = 60  # Lo
+
+            self.attack_time = self.attack_duration
+            self.attack_cooldown = self.attack_cooldown_duration
         
     def update(self, screen: pygame.surface):
-        if self.vx > 7:
-            self.vx = 6
-        if (self.x + self.vx) > 0 and (self.x + self.vx + 100 <= WIDTH):
+        # if self.vx > 7:
+        #     self.vx = 6
+        # if (self.x + self.vx) > 0 and (self.x + self.vx + 100 <= WIDTH):
+        #     self.x += self.vx
+        # minus = 0
+        # if self.dodging:
+        #     minus = 50
+
+        if self.knockback_duration > 0:
+            if (self.x + self.knockback_velocity) > 0 and (self.x + self.knockback_velocity + 100 <= WIDTH):
+                self.x += self.knockback_velocity
+            self.knockback_duration -= 1
+        elif (self.x + self.vx) > 0 and (self.x + self.vx + 100 <= WIDTH):
             self.x += self.vx
         minus = 0
         if self.dodging:
@@ -59,7 +95,7 @@ class boxer:
         pygame.draw.rect(screen, "#FF0000", (self.x - 20, self.y - 45, 140 * health_ratio, 15))
         pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
 
-        if self.punch == 0:
+        if self.punch_pos == 0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
         elif self.facing == 1:
             self.hitbox = (self.x + 50, self.y +50, 100,50)
@@ -88,11 +124,25 @@ def collision(box1,box2):
         if (x1 < x2 + w2 and x1 + w1 > x2 and 
             y1 < y2 + h2 and y1 + h1 > y2):
             
-            damage = 5
+            if box1.attack_type == "light":
+                damage = 5
+                knockback = 8
+                knockback_frames = 10
+            else:  
+                damage = 15
+                knockback = 15
+                knockback_frames = 20
+    
+            knockback_direction = 1 if box2.x > box1.x else -1
+            box2.knockback_velocity = knockback * knockback_direction
+            box2.knockback_duration = knockback_frames
+
             box2.health = max(0, box2.health - damage)
 
             box1.hitbox = None  
-            box1.punch = 0
+            box1.punch_pos = 0
+            box1.attack_time = 0
+            box1.attack_type = None
             return True
     return False
 
@@ -119,56 +169,115 @@ def main():
         held = pygame.key.get_pressed()
         for person in boxers:
             if person.stamina > 0:
-                if person.handle == 0:
-                    if held[pygame.K_RIGHT]:
-                        person.vx += person.acc
-                        person.facing = 1
-                    elif held[pygame.K_LEFT]:
-                        person.vx -= person.acc
-                        person.facing = -1
-                    else:
-                        person.vx = 0
-                    if held[pygame.K_UP]:
-                        person.punch = 1
-                        person.stamina -= 0.6
-                        person.stamina_regen_delay = 60 # because game is 120 FPS so 0.5 of a second
-                    else:
-                        person.punch = 0
-                    if held[pygame.K_DOWN]:
-                        person.dodging = True
-                        person.stamina -= 0.6
-                        person.stamina_regen_delay = 60
-                    else:
-                        person.dodging = False
-                elif person.handle == 1:
-                    if held[pygame.K_d]:
-                        person.vx += person.acc
-                        person.facing = 1
-                    elif held[pygame.K_a]:
-                        person.vx -= person.acc
-                        person.facing = -1
-                    else:
-                        person.vx = 0
-                    if held[pygame.K_w]:
-                        person.punch = 1
-                        person.stamina -= 0.6
-                        person.stamina_regen_delay = 60 
-                    else:
-                        person.punch = 0
-                    if held[pygame.K_s]:
-                        person.dodging = True
-                        person.stamina -= 0.6
-                        person.stamina_regen_delay = 60
-                    else:
-                        person.dodging = False
+                if person.attack_time == 0:
+                    if person.handle == 0:
+                        if held[pygame.K_RIGHT]:
+                            # person.vx += person.acc
+                            person.vx = person.speed
+                            person.facing = 1
+                        elif held[pygame.K_LEFT]:
+                            # person.vx -= person.acc
+                            person.vx = -person.speed
+                            person.facing = -1
+                        else:
+                            person.vx = 0
+                        
+                        if held[pygame.K_UP]:
+                            if not person.light_pressed:
+                                person.punch("light")
+                                person.punch_pos = 1
+                                person.stamina -= 0.6
+                                person.stamina_regen_delay = 60 
+                                person.light_pressed = True
+                        else:
+                            person.light_pressed = False
+
+                        if held[pygame.K_RSHIFT]:
+                            if not person.heavy_pressed:
+                                person.punch("heavy")
+                                person.punch_pos = 1
+                                person.stamina -= 0.6
+                                person.stamina_regen_delay = 60
+                                person.heavy_pressed = True
+                        else:
+                            person.heavy_pressed = False
+                        
+                        if not held[pygame.K_UP] and not held[pygame.K_RSHIFT]:
+                            person.punch_pos = 0
+
+                        if held[pygame.K_DOWN]:
+                            person.dodging = True
+                            person.stamina -= 0.6
+                            person.stamina_regen_delay = 60
+                        else:
+                            person.dodging = False
+
+                    elif person.handle == 1:
+                        if held[pygame.K_d]:
+                            # person.vx += person.acc
+                            person.vx = person.speed
+                            person.facing = 1
+                        elif held[pygame.K_a]:
+                            # person.vx -= person.acc
+                            person.vx = -person.speed
+                            person.facing = -1
+                        else:
+                            person.vx = 0
+
+                        if held[pygame.K_w]:
+                            if not person.light_pressed:
+                                person.punch("light")
+                                person.punch_pos = 1
+                                person.stamina -= 0.6
+                                person.stamina_regen_delay = 60 
+                                person.light_pressed = True
+                        else:
+                            person.light_pressed = False
+
+                        if held[pygame.K_e]:
+                            if not person.heavy_pressed:
+                                person.punch("heavy")
+                                person.punch_pos=1
+                                person.stamina -= 0.6
+                                person.stamina_regen_delay = 60 
+                                person.heavy_pressed = True
+                        else:
+                            person.heavy_pressed = False
+                        
+                        if not held[pygame.K_w] and not held[pygame.K_e]:
+                            person.punch_pos = 0
+
+                        if held[pygame.K_s]:
+                            person.dodging = True
+                            person.stamina -= 0.6
+                            person.stamina_regen_delay = 60
+                        else:
+                            person.dodging = False
+                else:
+                    person.vx = 0
+                    person.dodging = False
+
             else:
                 person.vx = 0
-                person.punch = 0
+                person.punch_pos = 0
                 person.dodging = False
+
+            if person.attack_time == 1:
+                person.vx = 0
+
+            if person.attack_time > 0:
+                person.attack_time -= 1
+                if person.attack_time == 0:
+                    person.punch_pos = 0
+                    person.hitbox = None
+                    person.attack_type = None
+            
+            if person.attack_cooldown > 0:
+                person.attack_cooldown -= 1
 
             if person.stamina_regen_delay > 0:
                 person.stamina_regen_delay -= 1
-            elif not person.punch and not person.dodging:
+            elif not person.punch_pos and not person.dodging:
                 person.stamina += 0.4
             if person.stamina > person.max_stamina:
                 person.stamina = person.max_stamina
