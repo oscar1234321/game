@@ -84,16 +84,27 @@ class boxer:
 
         self.hurtbox = (self.x, self.y + minus, 100, 200 - minus)
 
-        pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
-        pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
-        pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
-        pygame.draw.rect(screen, "#FFFFFF", (self.x - 25, self.y - 70, 150, 45))
+        health_ratio = self.health / self.max_health
         stamina_ratio = self.stamina / self.max_stamina
 
-        pygame.draw.rect(screen, "#0000FF", (self.x - 20, self.y - 65, 140 * stamina_ratio, 15))
-        health_ratio = self.health / self.max_health
-        pygame.draw.rect(screen, "#FF0000", (self.x - 20, self.y - 45, 140 * health_ratio, 15))
+        if self.handle == 1:
+            pygame.draw.rect(screen, "#FFFFFF", (20, 80, 250, 40))
+            pygame.draw.rect(screen, "#0000FF", (20, 105, 250 * stamina_ratio, 10))
+
+            pygame.draw.rect(screen, "#FFFFFF", (20, 75, 400, 25))
+            pygame.draw.rect(screen, "#FF0000", (20, 75, 400 * health_ratio, 25))
+        
+        else:
+            pygame.draw.rect(screen, "#FFFFFF", (730, 80, 250, 40))
+            stamina_width = 250 * stamina_ratio
+            pygame.draw.rect(screen, "#0000FF", (980-stamina_width, 105, stamina_width, 10))
+
+            pygame.draw.rect(screen, "#FFFFFF", (580, 75, 400, 25))
+            health_width = 400 * health_ratio
+            pygame.draw.rect(screen, "#FF0000", (980-health_width, 75, health_width, 25))
+
         pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
+        pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
 
         if self.punch_pos == 0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
@@ -126,11 +137,11 @@ def collision(box1,box2):
             
             if box1.attack_type == "light":
                 damage = 5
-                knockback = 8
+                knockback = 3
                 knockback_frames = 10
             else:  
                 damage = 15
-                knockback = 15
+                knockback = 8
                 knockback_frames = 20
     
             knockback_direction = 1 if box2.x > box1.x else -1
@@ -186,7 +197,7 @@ def main():
                             if not person.light_pressed:
                                 person.punch("light")
                                 person.punch_pos = 1
-                                person.stamina -= 0.6
+                                person.stamina -= 2
                                 person.stamina_regen_delay = 60 
                                 person.light_pressed = True
                         else:
@@ -196,7 +207,7 @@ def main():
                             if not person.heavy_pressed:
                                 person.punch("heavy")
                                 person.punch_pos = 1
-                                person.stamina -= 0.6
+                                person.stamina -= 4
                                 person.stamina_regen_delay = 60
                                 person.heavy_pressed = True
                         else:
@@ -228,7 +239,7 @@ def main():
                             if not person.light_pressed:
                                 person.punch("light")
                                 person.punch_pos = 1
-                                person.stamina -= 0.6
+                                person.stamina -= 2
                                 person.stamina_regen_delay = 60 
                                 person.light_pressed = True
                         else:
@@ -238,7 +249,7 @@ def main():
                             if not person.heavy_pressed:
                                 person.punch("heavy")
                                 person.punch_pos=1
-                                person.stamina -= 0.6
+                                person.stamina -= 4
                                 person.stamina_regen_delay = 60 
                                 person.heavy_pressed = True
                         else:
