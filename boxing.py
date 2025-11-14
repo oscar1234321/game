@@ -3,13 +3,15 @@ import pygame
 import pygame.locals
 
 WIDTH = HEIGHT = 1000
+boxer1 = pygame.image.load('fighter1.png')
 
 class boxer:
-    def __init__(self, x, handle, facing, color):
+    def __init__(self, x, handle, facing, color, image):
         self.x = x
         self.y = 500
         # self.vx = 4
         self.vx=0
+        self.image=image
 
         self.handle = handle
         # self.acc = 0.1
@@ -86,14 +88,18 @@ class boxer:
 
         pygame.draw.rect(screen, "#FFFFFF" , (self.x-25,self.y-50,150,25))
         pygame.draw.rect(screen, "#FF0000" , (self.x-20,self.y-45,140,15))
-        pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
+        self.image=pygame.transform.scale(self.image, (100,200-minus))
+        screen.blit(self.image, (self.x,self.y+minus))
+        # pygame.draw.rect(screen, self.color , (self.x,self.y+minus,100,200-minus))
         pygame.draw.rect(screen, "#FFFFFF", (self.x - 25, self.y - 70, 150, 45))
         stamina_ratio = self.stamina / self.max_stamina
 
         pygame.draw.rect(screen, "#0000FF", (self.x - 20, self.y - 65, 140 * stamina_ratio, 15))
         health_ratio = self.health / self.max_health
         pygame.draw.rect(screen, "#FF0000", (self.x - 20, self.y - 45, 140 * health_ratio, 15))
-        pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
+        self.image=pygame.transform.scale(self.image, (100,200-minus))
+        screen.blit(self.image, (self.x,self.y+minus))
+        # pygame.draw.rect(screen, self.color, (self.x, self.y + minus, 100, 200 - minus))
 
         if self.punch_pos == 0:
             pygame.draw.rect(screen, "#E03BA6", (self.x+25, self.y+50, 50,100))
@@ -151,8 +157,8 @@ def main():
     fps_clock = pygame.time.Clock()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    box1 = boxer(1,1,1,"#49E03B")
-    box2 = boxer(WIDTH-100,0,-1,"#672EBC")
+    box1 = boxer(1,1,1,"#49E03B", boxer1)
+    box2 = boxer(WIDTH-100,0,-1,"#672EBC", boxer1)
     boxers=[box1,box2]
 
 
