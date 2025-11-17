@@ -254,6 +254,8 @@ def main():
     fps_clock = pygame.time.Clock()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    background = pygame.image.load("background.png")
+    background = pygame.transform.scale(background, (WIDTH, HEIGHT))
     box1 = boxer(1,1,1,"#49E03B", boxer1)
     box2 = boxer(WIDTH-150,0,-1,"#672EBC", boxer1)
     boxers=[box1,box2]
@@ -265,7 +267,7 @@ def main():
     round_start_timer = 0
 
     while True:
-        screen.fill("#000000")
+        screen.blit(background, (0, 0))
         pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
         draw_lives(screen, box1, box2)
 
