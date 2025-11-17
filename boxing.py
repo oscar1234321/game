@@ -50,6 +50,25 @@ class boxer:
 
         self.knockback_velocity = 0
         self.knockback_duration = 0
+    
+    def respawn(self):
+        if self.handle == 1:
+            self.x = 1
+        else:
+            self.x = WIDTH-100
+        self.health = self.max_health
+        self.stamina = self.max_stamina
+        self.vx = 0
+        self.punch_pos = 0
+        self.dodging = False
+        self.hitbox = None
+        self.hurtbox = None
+        self.attack_time = 0
+        self.attack_cooldown = 0
+        self.attack_type = None
+        self.knockback_velocity = 0
+        self.knockback_duration = 0
+        self.stamina_regen_delay = 0
 
     def punch(self, punch_type):
         if self.attack_time == 0 and self.attack_cooldown == 0:
@@ -157,10 +176,27 @@ def collision(box1,box2):
 
             box1.hitbox = None  
             box1.punch_pos = 0
-            box1.attack_time = 0
             box1.attack_type = None
             return True
     return False
+
+def knockout(box1,box2):
+
+    respawn_occurred = False
+    
+    if box1.health <= 0:
+        box1.lives -= 1
+        box1.respawn()
+        box2.respawn()
+        respawn_occurred = True
+    
+    if box2.health <= 0:
+        box2.lives -= 1
+        box1.respawn()
+        box2.respawn()
+        respawn_occurred = True
+    
+    return respawn_occurred
 
 def main():
     fps = 120
@@ -188,11 +224,9 @@ def main():
                 if person.attack_time == 0:
                     if person.handle == 0:
                         if held[pygame.K_RIGHT]:
-                            # person.vx += person.acc
                             person.vx = person.speed
                             person.facing = 1
                         elif held[pygame.K_LEFT]:
-                            # person.vx -= person.acc
                             person.vx = -person.speed
                             person.facing = -1
                         else:
@@ -303,6 +337,8 @@ def main():
         
         collision(box1, box2)
         collision(box2, box1)
+
+        knockout(box1,box2)
 
         pygame.display.flip()
         fps_clock.tick(fps)
