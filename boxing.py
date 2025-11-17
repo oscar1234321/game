@@ -5,6 +5,7 @@ import pygame.locals
 WIDTH = HEIGHT = 1000
 boxer1 = pygame.image.load('fighter1.png')
 
+
 class boxer:
     def __init__(self, x, handle, facing, color, image):
         try:
