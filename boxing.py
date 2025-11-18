@@ -262,13 +262,6 @@ def collision(box1,box2):
 
             box1.attack_cooldown = cooldown
             box1.hitbox = None
-            # box1.hitbox = None  
-            # box1.punch_pos = 0
-            # box1.attack_type = None
-            # box1.attack_time = 0
-            # box1.windup_time = 0
-            # box1.active_time = 0
-            # box1.followthrough_time = 0
             return True
     return False
 
@@ -330,7 +323,7 @@ def main():
         if game_state == "round_start":
             draw_round_start(screen, round_num)
             round_start_timer += 1
-            if round_start_timer >= 120:  # Show "ROUND X" for 1 second (120 frames)
+            if round_start_timer >= 120:  
                 game_state = "countdown"
                 countdown_timer = 0
                 countdown_value = 3
@@ -421,10 +414,7 @@ def main():
                                     person.heavy_pressed = True
                             else:
                                 person.heavy_pressed = False
-                            
-                            # if not held[pygame.K_w] and not held[pygame.K_e]:
-                            #     person.punch_pos = 0
-
+                           
                             if held[pygame.K_s]:
                                 person.dodging = True
                                 person.stamina -= 0.6
