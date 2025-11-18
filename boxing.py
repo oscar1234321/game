@@ -1,10 +1,11 @@
 import sys
 import pygame
 import pygame.locals
+import random
 
 WIDTH = HEIGHT = 1000
 boxer1 = pygame.image.load('fighter1.png')
-
+bg2 = pygame.image.load('bg2.png')
 
 class boxer:
     def __init__(self, x, handle, facing, color, image):
@@ -42,7 +43,7 @@ class boxer:
         self.animation_speed = 8
 
         self.x = x
-        self.y = 500
+        self.y = 600
         self.vx=0
         self.image=image
 
@@ -294,7 +295,12 @@ def main():
     fps_clock = pygame.time.Clock()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    background = pygame.image.load("background.png")
+    bg1 = pygame.image.load("bg2.png")
+    bg2 = pygame.image.load("bg3.png")
+    bg = []
+    bg.append(bg1)
+    bg.append(bg2)
+    background = random.choice(bg)
     background = pygame.transform.scale(background, (WIDTH, HEIGHT))
     box1 = boxer(1,1,1,"#49E03B", boxer1)
     box2 = boxer(WIDTH-150,0,-1,"#672EBC", boxer1)
@@ -308,7 +314,7 @@ def main():
 
     while True:
         screen.blit(background, (0, 0))
-        pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
+        # pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
         draw_lives(screen, box1, box2)
 
         for event in pygame.event.get():
