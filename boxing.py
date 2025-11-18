@@ -29,7 +29,13 @@ class boxer:
             ]
         except:
             self.idle_frames = [image]
-    
+
+        try:
+            self.walk_frames = [
+
+            ]
+        except:
+            self.walk_frames = [image]
 
         self.current_frame = 0
         self.animation_counter = 0
