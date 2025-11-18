@@ -11,13 +11,25 @@ class boxer:
     def __init__(self, x, handle, facing, color, image):
         try:
             self.light_punch_frames = [
-                pygame.image.load("Attack_1bg.png"),
-                pygame.image.load("Attack_2bg.png"),
-                pygame.image.load("Attack_3bg.png"),
-                pygame.image.load("Attack_4bg.png")
+                pygame.image.load("Attack_1.png"),
+                pygame.image.load("Attack_2.png"),
+                pygame.image.load("Attack_3.png"),
+                pygame.image.load("Attack_4.png")
             ]
         except:
             self.light_punch_frames = [image]
+        
+        try:
+            self.idle_frames = [
+                pygame.image.load("Idle_1.png"),
+                pygame.image.load("Idle_2.png"),
+                pygame.image.load("Idle_3.png"),
+                pygame.image.load("Idle_4.png"),
+                pygame.image.load("Idle_5.png"),
+                pygame.image.load("Idle_6.png")
+            ]
+        except:
+            self.idle_frames = [image]
     
 
         self.current_frame = 0
@@ -81,6 +93,9 @@ class boxer:
         self.attack_time = 0
         self.attack_cooldown = 0
         self.attack_type = None
+        self.windup_time = 0
+        self.active_time = 0
+        self.followthrough_time = 0
         self.knockback_velocity = 0
         self.knockback_duration = 0
         self.stamina_regen_delay = 0
@@ -90,32 +105,46 @@ class boxer:
             self.attack_type = punch_type
                 
             if punch_type == "light":
+                self.windup_time = 5
+                self.active_time = 2
+                self.followthrough_time = 7
                 self.attack_duration = 25  
-                self.attack_cooldown_duration = 40  
+                
             elif punch_type == "heavy":
+                self.windup_time = 20
+                self.active_time = 2
+                self.followthrough_time = 15
                 self.attack_duration = 50  
-                self.attack_cooldown_duration = 60  
 
             self.attack_time = self.attack_duration
             self.attack_cooldown = self.attack_cooldown_duration
         
     def update(self, screen: pygame.surface):
-        current_frames = [self.image]  
-        anim_speed = 10
+        if self.attack_time > 0:
+            elapsed = self.attack_duration - self.attack_time
+            frames = self.light_punch_frames  
+            total_frames = len(frames) 
 
-        if self.attack_time > 0 and self.attack_type == "light":
-            current_frames = self.light_punch_frames
-            anim_speed = 4
-        
-            self.animation_counter += 1
-            if self.animation_counter >= anim_speed:
-                self.animation_counter = 0
-                self.current_frame = (self.current_frame + 1) % len(current_frames)
+            if elapsed < self.windup_time:
+                progress = elapsed / self.windup_time
+                frame_index = int(progress * 2)  
+                frame_index = min(frame_index, 1)
+            elif elapsed < (self.windup_time + self.active_time):
+                progress = (elapsed - self.windup_time) / self.active_time
+                frame_index = 2 + int(progress * 2) 
+                frame_index = min(frame_index, 3)
+            else:
+                frame_index = 3
 
-            self.image = current_frames[self.current_frame]
+            self.image = frames[frame_index]
+
         else:
-            self.current_frame = 0
-            self.animation_counter = 0
+            self.animation_counter += 1
+            if self.animation_counter >= self.animation_speed:
+                self.animation_counter = 0
+                self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+
+            self.image = self.idle_frames[self.current_frame]
         
         if self.knockback_duration > 0:
             if (self.x + self.knockback_velocity) > 0 and (self.x + self.knockback_velocity + 100 <= WIDTH):
@@ -128,9 +157,9 @@ class boxer:
         if self.dodging:
             minus = 50
 
-        self.hurtbox = (self.x, self.y + minus, 150, 200 - minus)
+        self.hurtbox = (self.x, self.y + minus, 100, 210 - minus)
 
-        scaled_image = pygame.transform.scale(self.image, (150, 200 - minus))
+        scaled_image = pygame.transform.scale(self.image, (100, 210 - minus))
         if self.facing == -1:
             scaled_image = pygame.transform.flip(scaled_image, True, False)
         
@@ -155,14 +184,18 @@ class boxer:
             health_width = 400 * health_ratio
             pygame.draw.rect(screen, "#FF0000", (980-health_width, 75, health_width, 25))
         
-        if self.punch_pos == 0:
-            pygame.draw.rect(screen, "#E03BA6", (self.x+50, self.y+50, 50,100))
-        elif self.facing == 1:
-            self.hitbox = (self.x + 50, self.y +50, 100,50)
-            pygame.draw.rect(screen, "#E03BA6", self.hitbox)
-        elif self.facing == -1:
-            self.hitbox = (self.x - 50, self.y +50, 100,50)
-            pygame.draw.rect(screen, "#E03BA6", self.hitbox)
+        if self.attack_time > 0:
+            elasped = self.attack_duration - self.attack_time
+
+            if self.windup_time <= elapsed <(self.windup_time + self.active_time):
+                if self.facing == 1:
+                    self.hitbox = (self.x + 50, self.y +50, 100,50)
+                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,2)
+                elif self.facing == -1:
+                    self.hitbox = (self.x - 50, self.y +50, 100,50)
+                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,2)
+            else:
+                self.hitbox = None
 
 def draw_lives(screen, box1, box2):
     font = pygame.font.SysFont(None, 40)
@@ -212,13 +245,15 @@ def collision(box1,box2):
             y1 < y2 + h2 and y1 + h1 > y2):
             
             if box1.attack_type == "light":
-                damage = 5
-                knockback = 3
-                knockback_frames = 10
-            else:  
-                damage = 15
+                damage = 2
                 knockback = 8
+                knockback_frames = 10
+                cooldown = 40
+            else:  
+                damage = 8
+                knockback = 16
                 knockback_frames = 20
+                cooldown = 60
     
             knockback_direction = 1 if box2.x > box1.x else -1
             box2.knockback_velocity = knockback * knockback_direction
@@ -226,9 +261,8 @@ def collision(box1,box2):
 
             box2.health = max(0, box2.health - damage)
 
-            box1.hitbox = None  
-            box1.punch_pos = 0
-            box1.attack_type = None
+            box1.attack_cooldown = cooldown
+            box1.hitbox = None
             return True
     return False
 
@@ -295,7 +329,7 @@ def main():
         if game_state == "round_start":
             draw_round_start(screen, round_num)
             round_start_timer += 1
-            if round_start_timer >= 120:  # Show "ROUND X" for 1 second (120 frames)
+            if round_start_timer >= 120:  
                 game_state = "countdown"
                 countdown_timer = 0
                 countdown_value = 3
@@ -350,15 +384,6 @@ def main():
                             else:
                                 person.heavy_pressed = False
                             
-                            # if not held[pygame.K_UP] and not held[pygame.K_RSHIFT]:
-                            #     person.punch_pos = 0
-                                
-                            # if person.attack_time > 0:
-                            #     person.attack_time -= 1
-                            #     if person.attack_time == 0:
-                            #         person.hitbox = None
-                            #         person.attack_type = None
-
                             if held[pygame.K_DOWN]:
                                 person.dodging = True
                                 person.stamina -= 0.6
@@ -395,10 +420,7 @@ def main():
                                     person.heavy_pressed = True
                             else:
                                 person.heavy_pressed = False
-                            
-                            # if not held[pygame.K_w] and not held[pygame.K_e]:
-                            #     person.punch_pos = 0
-
+                           
                             if held[pygame.K_s]:
                                 person.dodging = True
                                 person.stamina -= 0.6
