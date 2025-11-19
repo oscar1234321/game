@@ -3,7 +3,8 @@ import pygame
 import pygame.locals
 import random
 
-WIDTH = HEIGHT = 1000
+WIDTH = 1000
+HEIGHT = 800
 boxer1 = pygame.image.load('fighter1.png')
 bg2 = pygame.image.load('bg2.png')
 
@@ -43,7 +44,7 @@ class boxer:
         self.animation_speed = 8
 
         self.x = x
-        self.y = 600
+        self.y = 500
         self.vx=0
         self.image=image
 
@@ -126,6 +127,11 @@ class boxer:
             self.attack_cooldown = self.attack_cooldown_duration
         
     def update(self, screen: pygame.surface):
+        if self.handle == 1:
+            pygame.draw.circle(screen, "#002028", (self.x +50 , self.y - 50), 15)
+        else:
+            pygame.draw.circle(screen, "#c21807", (self.x +50 , self.y - 50), 15)
+
         if self.attack_time > 0:
             elapsed = self.attack_duration - self.attack_time
             frames = self.light_punch_frames  
@@ -195,11 +201,11 @@ class boxer:
 
             if self.windup_time <= elapsed <(self.windup_time + self.active_time):
                 if self.facing == 1:
-                    self.hitbox = (self.x + 50, self.y +50, 100,50)
-                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,2)
+                    self.hitbox = (self.x + 50, self.y +50, 80,50)
+                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,0)
                 elif self.facing == -1:
-                    self.hitbox = (self.x - 50, self.y +50, 100,50)
-                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,2)
+                    self.hitbox = (self.x - 30, self.y +50, 80,50)
+                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,0)
             else:
                 self.hitbox = None
 
