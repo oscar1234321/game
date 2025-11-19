@@ -10,18 +10,14 @@ bg2 = pygame.image.load('bg2.png')
 
 class boxer:
     def __init__(self, x, handle, facing, color, image):
-        try:
-            self.light_punch_frames = [
+        self.punch_frames = [
                 pygame.image.load("Attack_1.png"),
                 pygame.image.load("Attack_2.png"),
                 pygame.image.load("Attack_3.png"),
                 pygame.image.load("Attack_4.png")
             ]
-        except:
-            self.light_punch_frames = [image]
         
-        try:
-            self.idle_frames = [
+        self.idle_frames = [
                 pygame.image.load("Idle_1.png"),
                 pygame.image.load("Idle_2.png"),
                 pygame.image.load("Idle_3.png"),
@@ -29,15 +25,7 @@ class boxer:
                 pygame.image.load("Idle_5.png"),
                 pygame.image.load("Idle_6.png")
             ]
-        except:
-            self.idle_frames = [image]
-
-        try:
-            self.walk_frames = [
-
-            ]
-        except:
-            self.walk_frames = [image]
+        
 
         self.current_frame = 0
         self.animation_counter = 0
@@ -70,7 +58,6 @@ class boxer:
 
         self.hurtbox = None
         self.hitbox = None
-        self.hitstun = 0
 
         self.attack_time = 0
         self.attack_duration = 30
@@ -84,12 +71,15 @@ class boxer:
 
         self.knockback_velocity = 0
         self.knockback_duration = 0
+
+        self.windup_time = 0
+        self.active_time = 0
     
     def respawn(self):
         if self.handle == 1:
-            self.x = 1
+            self.x = 10
         else:
-            self.x = WIDTH-100
+            self.x = WIDTH-120
         self.health = self.max_health
         self.stamina = self.max_stamina
         self.vx = 0
@@ -102,7 +92,6 @@ class boxer:
         self.attack_type = None
         self.windup_time = 0
         self.active_time = 0
-        self.followthrough_time = 0
         self.knockback_velocity = 0
         self.knockback_duration = 0
         self.stamina_regen_delay = 0
@@ -114,13 +103,11 @@ class boxer:
             if punch_type == "light":
                 self.windup_time = 5
                 self.active_time = 2
-                self.followthrough_time = 7
                 self.attack_duration = 25  
                 
             elif punch_type == "heavy":
                 self.windup_time = 20
                 self.active_time = 2
-                self.followthrough_time = 15
                 self.attack_duration = 50  
 
             self.attack_time = self.attack_duration
@@ -134,8 +121,7 @@ class boxer:
 
         if self.attack_time > 0:
             elapsed = self.attack_duration - self.attack_time
-            frames = self.light_punch_frames  
-            total_frames = len(frames) 
+            frames = self.punch_frames  
 
             if elapsed < self.windup_time:
                 progress = elapsed / self.windup_time
@@ -152,6 +138,7 @@ class boxer:
 
         else:
             self.animation_counter += 1
+
             if self.animation_counter >= self.animation_speed:
                 self.animation_counter = 0
                 self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
@@ -162,6 +149,7 @@ class boxer:
             if (self.x + self.knockback_velocity) > 0 and (self.x + self.knockback_velocity + 100 <= WIDTH):
                 self.x += self.knockback_velocity
             self.knockback_duration -= 1
+
         elif (self.x + self.vx) > 0 and (self.x + self.vx + 100 <= WIDTH):
             self.x += self.vx
 
@@ -197,15 +185,13 @@ class boxer:
             pygame.draw.rect(screen, "#FF0000", (980-health_width, 75, health_width, 25))
         
         if self.attack_time > 0:
-            elasped = self.attack_duration - self.attack_time
-
             if self.windup_time <= elapsed <(self.windup_time + self.active_time):
                 if self.facing == 1:
                     self.hitbox = (self.x + 50, self.y +50, 80,50)
-                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,0)
+                    pygame.draw.rect(screen, "#000000", self.hitbox,0)
                 elif self.facing == -1:
                     self.hitbox = (self.x - 30, self.y +50, 80,50)
-                    pygame.draw.rect(screen, "#E03BA6", self.hitbox,0)
+                    pygame.draw.rect(screen, "#000000", self.hitbox,0)
             else:
                 self.hitbox = None
 
@@ -267,14 +253,17 @@ def collision(box1,box2):
                 knockback_frames = 20
                 cooldown = 60
     
-            knockback_direction = 1 if box2.x > box1.x else -1
+            if box2.x > box1.x:
+                knockback_direction = 1 
+            else:
+                knockback_direction = -1
             box2.knockback_velocity = knockback * knockback_direction
             box2.knockback_duration = knockback_frames
 
             box2.health = max(0, box2.health - damage)
-
             box1.attack_cooldown = cooldown
             box1.hitbox = None
+
             return True
     return False
 
@@ -308,8 +297,8 @@ def main():
     bg.append(bg2)
     background = random.choice(bg)
     background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-    box1 = boxer(1,1,1,"#49E03B", boxer1)
-    box2 = boxer(WIDTH-150,0,-1,"#672EBC", boxer1)
+    box1 = boxer(20,1,1,"#49E03B", boxer1)
+    box2 = boxer(WIDTH-120,0,-1,"#672EBC", boxer1)
     boxers=[box1,box2]
 
     game_state = "round_start" 
@@ -320,7 +309,6 @@ def main():
 
     while True:
         screen.blit(background, (0, 0))
-        # pygame.draw.rect(screen, "#7B2E16", (0, 700, 1000, 200))
         draw_lives(screen, box1, box2)
 
         for event in pygame.event.get():
